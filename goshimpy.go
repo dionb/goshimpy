@@ -2,7 +2,9 @@ package goshimpy
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"os/exec"
 )
 
@@ -11,9 +13,13 @@ import (
 //Call a python function using the python environment
 func Call(name, path string, result interface{}, params ...interface{}) error {
 
-	toPrint := params[0]
+	toPrint, err := buildArgString(params)
+	if err != nil {
+		log.Println(err.Error())
+		return errors.New("Error occurred when trying to build python argument list")
+	}
 
-	cmd := exec.Command("python", "-c", fmt.Sprintf("import json,%s; print(json.dumps(%s.%s(%s)))", path, path, name, toPrint))
+	cmd := exec.Command("python", "-c", fmt.Sprintf("import json,%s; args = %s; print(json.dumps(%s.%s(*args)))", path, toPrint, path, name))
 	fmt.Println(cmd.Args)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -26,4 +32,28 @@ func Call(name, path string, result interface{}, params ...interface{}) error {
 
 	return nil
 
+}
+
+func buildArgString(args []interface{}) (string, error) {
+	argString := ""
+	var err error
+	var argBytes []byte
+	log.Println("received ", len(args), " args")
+	switch len(args) {
+	case 0:
+		argString = ""
+	case 1:
+		argBytes, err = json.Marshal(args[0])
+		argString = "[" + string(argBytes) + "]"
+	default:
+		argBytes, err = json.Marshal(args)
+		argString = "json.loads('" + string(argBytes) + "')"
+	}
+	if err != nil {
+		return "", err
+	}
+
+	log.Println(argString)
+
+	return argString, nil
 }
