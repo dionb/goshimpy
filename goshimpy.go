@@ -19,7 +19,7 @@ func Call(name, path string, result interface{}, params ...interface{}) error {
 		return errors.New("Error occurred when trying to build python argument list")
 	}
 
-	cmd := exec.Command("python", "-c", fmt.Sprintf("import json,%s; args = %s; print(json.dumps(%s.%s(*args)))", path, toPrint, path, name))
+	cmd := exec.Command("python3", "-c", fmt.Sprintf("import json; from %s import %s; args = %s; print(json.dumps(%s(*args)))", path, name, toPrint, name))
 	fmt.Println(cmd.Args)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -41,7 +41,7 @@ func buildArgString(args []interface{}) (string, error) {
 	log.Println("received ", len(args), " args")
 	switch len(args) {
 	case 0:
-		argString = ""
+		argString = "[]"
 	case 1:
 		argBytes, err = json.Marshal(args[0])
 		argString = "[" + string(argBytes) + "]"

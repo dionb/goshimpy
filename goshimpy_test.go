@@ -15,7 +15,9 @@ func TestCall(t *testing.T) {
 		log.Println(err.Error())
 	}
 	fmt.Println(output)
-	t.Fail()
+	if output != "HELLO WORLD" {
+		t.Fail()
+	}
 }
 
 func TestCallMultipleArgs(t *testing.T) {
@@ -25,5 +27,19 @@ func TestCallMultipleArgs(t *testing.T) {
 		log.Println(err.Error())
 	}
 	fmt.Println(output)
-	t.Fail()
+	if output != "HELLO WORLD" {
+		t.Fail()
+	}
+}
+
+func TestCallOtherDir(t *testing.T) {
+	var output string
+	err := goshimpy.Call("foo", "test_dir.child_test", &output)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	fmt.Println(output)
+	if output != "bar" {
+		t.Fail()
+	}
 }
